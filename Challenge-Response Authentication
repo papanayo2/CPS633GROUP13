@@ -1,0 +1,116 @@
+/* ask for username
+see if the username exists
+if it does, then ask for a password. else close program.
+then hash the password
+generate a random 32-bit number
+XOR your inputted hashed passwords characters with the random number
+do the same with the file password
+then compare the 2
+if they are the same print access granted,else print access denied. */
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+void E(char *in, char *out);
+char * hashFunc(char * password);
+
+int main(){
+	char * username = malloc(100*sizeof(char));
+	//asking for username
+	printf("Please enter your username between 4 - 32 characters: ");
+	scanf("%s", username);
+
+	FILE *fp;
+	fp = fopen("table.txt", "r+");
+
+	char * tableRow = malloc(44*sizeof(char));
+	char * tableUsername = malloc(32*sizeof(char));
+	char * tablePassword = malloc(12*sizeof(char));
+	char * delimeter = " ";
+	char * enteredPassword = malloc(100*sizeof(char));
+	char * enteredHashPass = malloc(12*sizeof(char));
+	char * result1 = malloc(12*sizeof(char));
+	char * result2 = malloc(12*sizeof(char));
+	int r;
+
+	bool inTable = false;
+
+	while(fgets(tableRow, 44, fp)){
+
+        strcpy(tableUsername, strtok(tableRow, delimeter));//get the username from the tablerow
+        strcpy(tablePassword, strtok(NULL, delimeter));//get the password from the tablerow
+        //printf("comparing username: %s with table username: %s\n", username, tableUsername);
+        if(strcmp(username, tableUsername) == 0){//if username is in the table
+                inTable = true;
+                printf("Please enter your password: ");
+                scanf("%s", enteredPassword);
+		enteredHashPass = hashFunc(enteredPassword);
+		r = rand();
+		
+		int i;
+		for(i = 0; i < strlen(enteredPassword); i++){
+			result1[i] = (char)enteredHashPass[i]^r;
+		}
+
+		for(i = 0; i < strlen(tablePassword); i++){
+			result2[i] = (char)tablePassword[i]^r;
+		}
+
+		if(strcmp(result1, result2) == 0){
+		printf("access granted");
+		}
+
+		else printf("access denied");
+		
+                }
+	else printf("The username you entered doesn't exist, Exitting..\n");
+                break;
+        }
+    }
+
+char * hashFunc(char * password){
+
+    char * encryptedPassword = malloc(12*sizeof(char));
+    char * b1 = malloc(4*sizeof(char));
+    char * b2 = malloc(4*sizeof(char));
+    char * b3 = malloc(4*sizeof(char));
+
+    //convert all characters of password to uppercase
+    strcpy(password, strupr(password));
+    strncpy(b1, password, 4);
+    b1[4] = '\0';
+    strncpy(b2, password + 4, 4);
+    b2[4] = '\0';
+    strncpy(b3, password + 8, 4);
+    b3[4] = '\0';
+
+    printf("b1 is %s\n", b1);
+    printf("b2 is %s\n", b2);
+    printf("b3 is %s\n", b3);
+    
+    char * o1 = malloc(4*sizeof(char));
+    char * o2 = malloc(4*sizeof(char));
+    char * o3 = malloc(4*sizeof(char));
+
+    E(b1, o1);
+    E(b2, o2);
+    E(b3, o3);
+
+    strcat(encryptedPassword, o1);
+    strcat(encryptedPassword, o2);
+    strcat(encryptedPassword, o3);
+
+    return encryptedPassword;
+
+}
+
+
+void E(char *in, char *out){
+    out[0]=(in[0]&0x80)^(((in[0]>>1)&0x7F)^((in[0])&0x7F));
+    out[1]=((in[1]&0x80)^((in[0]<<7)&0x80))^(((in[1]>>1)&0x7F)^((in[1])&0x7F));
+    out[2]=((in[2]&0x80)^((in[1]<<7)&0x80))^(((in[2]>>1)&0x7F)^((in[2])&0x7F));
+    out[3]=((in[3]&0x80)^((in[2]<<7)&0x80))^(((in[3]>>1)&0x7F)^((in[3])&0x7F));
+}
