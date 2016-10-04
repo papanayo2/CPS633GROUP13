@@ -1,0 +1,251 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+bool isUsernameValid(char * username);
+bool isPasswordValid(char * password);
+char * hashFunc(char * password);
+void E(char *in, char *out);
+bool passwordMatch(char * passwordInput, char * hashedPassword);
+
+
+int main(){
+
+    FILE * fp;
+    FILE * fp2;
+    fp2 = fopen("table2.txt", "w+");
+    fp = fopen("table.txt", "r+"); //opening table
+    if(!fp){
+            //printf("created new file\n");
+            fclose(fp);
+            fp = fopen("table.txt", "w+");
+
+    }
+
+
+    char * username = malloc(100*sizeof(char));
+//asking for username
+    printf("Please enter your username between 4 - 32 characters: ");
+	scanf("%s", username);
+//if the username is invalid keep asking for username
+    while(!(isUsernameValid(username))){
+            printf("Username length wrong, please enter your username again: ");
+            scanf("%s", username);
+    }
+
+
+
+    char * tableRow = malloc(44*sizeof(char));
+    char * tableUsername = malloc(32*sizeof(char));
+    char * tablePassword = malloc(12*sizeof(char));
+    char * enteredOldPassword = malloc(12*sizeof(char));
+    //char * enteredOldPassword2 = malloc(100*sizeof(char));
+    //char enteredOldPassword2[12];
+    char * enteredNewPassword = malloc(12*sizeof(char));
+    char * enteredNewPassword2 = malloc(12*sizeof(char));
+    char * tableEntry = malloc(44*sizeof(char));
+
+    bool inTable = false;
+
+
+
+    while(fgets(tableRow, 44, fp)){
+
+            tableUsername = strtok(tableRow, " ");//get the username from the tablerow
+            tablePassword = strtok(NULL, " ");//get the password from the tablerow
+            //printf("comparing username: %s with table username: %s\n", username, tableUsername);
+            if(strcmp(username, tableUsername) == 0){//if username is in the table
+                        printf("table password:%s", tablePassword);
+                        int h = 0;
+                        while(h < strlen(tablePassword)){
+                                printf("%d:%c\n", h+1,tablePassword[h]);
+                                if(tablePassword[h] == '\n'){
+                                        printf("found a newline\n");
+                                        tablePassword[h] = '\0';
+                                }
+                                h++;
+                        }
+                        //printf("table password:%s\n", tablePassword);
+                    inTable = true;
+
+                    int n = 1;
+                    while(1){
+                            printf("Please enter your old password: ");
+                            scanf("%s", enteredOldPassword);
+
+                            if(strlen(enteredOldPassword) < 12){
+                                    int len = strlen(enteredOldPassword);
+                                    printf("len is %d\n", len);
+                                    while(len < 12){
+                                            strcat(enteredOldPassword, "0");
+                                            len++;
+                                    }
+                            }
+
+                            enteredOldPassword[11] = '\0';
+                            if(!(passwordMatch(enteredOldPassword, tablePassword))){
+
+                                    if(n == 3){
+                                            printf("Too many unsuccessful attempts - your account is locked.");
+                                            break;
+                                    }
+                                    n++;
+                            }
+                            else{
+                                    printf("Welcome back %s. Please enter a new password:", username);
+                                    scanf("%s", enteredNewPassword);
+                                    while(!(isPasswordValid(enteredNewPassword))){//while new password is not valid keep asking for a valid one
+                                            printf("Error: Enter a valid password: ");
+                                            scanf("%s", enteredNewPassword);
+                                    }
+                                    //printf("new password: %s\n", enteredNewPassword);
+                                    //fseek(fp, -(strlen(tablePassword)), SEEK_CUR);
+                                    //fgets(tableRow, 44, fp);
+                                    //printf("--- %s\n ---", tableRow);
+                                    strcpy(tableEntry, username);
+                                    strcat(tableEntry, " ");
+                                    strcat(tableEntry, hashFunc(enteredNewPassword));
+
+                                    fprintf(fp, "%s\n", tableEntry);
+                                    //fputs(username, fp2);
+                                   // fputs(" ", fp2);
+                                    //fputs(hashFunc(enteredNewPassword), fp2);
+                                    break;
+                            }
+                        }
+
+                        break;//breaks old password loop
+            }
+
+            fprintf(fp2, "%s ", tableUsername);
+            fprintf(fp2, "%s\n", tablePassword);
+
+    }
+
+
+
+    if(!(inTable)){
+            printf("Please enter a new password. Only use lower case, upper case and numbers with a max of 12 characters with no special characters: ");
+            scanf("%s", enteredNewPassword);
+
+            while(!(isPasswordValid(enteredNewPassword))){//while new password is not valid keep asking for a valid one
+                    printf("Error: Enter a valid password: ");
+                    scanf("%s", enteredNewPassword);
+            }
+
+
+            if(strlen(enteredNewPassword) < 12){
+                    int len = strlen(enteredNewPassword);
+                    printf("len is %d\n", len);
+                    while(len < 12){
+                            strcat(enteredNewPassword, "0");
+                            len++;
+                    }
+            }
+
+            enteredNewPassword[11] = '\0';
+            printf("%s\n",enteredNewPassword);
+            //strcpy(tableEntry, username);
+            //strcat(tableEntry, " ");
+            //strcat(tableEntry, hashFunc(enteredNewPassword));
+
+
+            //fprintf(fp, "%s\n", tableEntry);
+            fprintf(fp2, "%s ", username);
+            printf("%s\n",hashFunc(enteredNewPassword));
+            fprintf(fp2, "%s\n", hashFunc(enteredNewPassword));
+            //fputs("\n", fp2);
+    }
+
+    fclose(fp);
+
+    fclose(fp2);
+
+
+    return 0;
+}
+
+
+
+
+bool isUsernameValid(char * username){
+        if(strlen(username) < 4  || strlen(username) > 32) return false;
+        else return true;
+}
+
+bool isPasswordValid(char * password){
+        int i = 0;
+        for(i; i < strlen(password); i++){
+        if(!(isalpha(password[i]) || isdigit(password[i])))
+                return false;
+        }
+        return true;
+}
+
+char * hashFunc(char * password){
+
+    char * encryptedPassword = malloc(12*sizeof(char));
+    //memset(encryptedPassword, '\0', 12);
+    char * b1 = malloc(5*sizeof(char));
+    char * b2 = malloc(5*sizeof(char));
+    char * b3 = malloc(5*sizeof(char));
+    char * password2 = malloc(12*sizeof(char));
+
+    //convert all characters of password to uppercase
+    //strcpy(password2, strupr(password));
+    password2 = strupr(password);
+    strncpy(b1, password, 4);
+    b1[4] = '\0';
+    //printf("b1 is: %s\n", b1);
+    strncpy(b2, password2 + 4, 4);
+    b2[4] = '\0';
+    //printf("b2 is: %s\n", b2);
+    strncpy(b3, password2 + 8, 4);
+    b3[4] = '\0';
+    //printf("b3 is: %s\n", b3);
+
+    char * o1 = malloc(5*sizeof(char));
+    char * o2 = malloc(5*sizeof(char));
+    char * o3 = malloc(5*sizeof(char));
+
+    E(b1, o1);
+    E(b2, o2);
+    E(b3, o3);
+
+    //printf("b1 is: %s\n", o1);
+   // printf("b2 is: %s\n", o2);
+    //printf("b3 is: %s\n", o3);
+
+    //printf("%s\n", encryptedPassword);
+    strcat(encryptedPassword, o1);
+    //printf("%s\n", encryptedPassword);
+    strcat(encryptedPassword, o2);
+   // printf("%s\n", encryptedPassword);
+    strcat(encryptedPassword, o3);
+
+   encryptedPassword[12] = '\0';
+
+    printf("%s\n", encryptedPassword);
+    return encryptedPassword;
+
+}
+
+void E(char *in, char *out){
+    out[0]=(in[0]&0x80)^(((in[0]>>1)&0x7F)^((in[0])&0x7F));
+    out[1]=((in[1]&0x80)^((in[0]<<7)&0x80))^(((in[1]>>1)&0x7F)^((in[1])&0x7F));
+    out[2]=((in[2]&0x80)^((in[1]<<7)&0x80))^(((in[2]>>1)&0x7F)^((in[2])&0x7F));
+    out[3]=((in[3]&0x80)^((in[2]<<7)&0x80))^(((in[3]>>1)&0x7F)^((in[3])&0x7F));
+}
+
+bool passwordMatch(char * passwordInput, char * hashedPassword){
+
+    if(strcmp(hashFunc(passwordInput), hashedPassword) == 0 ){
+        printf("passwords match!\n");
+        return true;
+    }
+    else {return false;}
+
+}
+
