@@ -1,0 +1,138 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <unistd.h>
+#define ALPHABET_LENGTH 26
+
+void createHashTable(FILE * fptr);
+void searchTable(FILE * tablePtr, FILE * inputPassFile);
+char * hash(char  * password);
+void E(char *in, char *out);
+
+int main()
+{
+    //if file table.txt doesn't exist
+    if(access("table.txt", F_OK) == -1 ) {
+        FILE *tablePtr;
+        tablePtr = fopen("table.txt", "w+");
+
+        createHashTable(tablePtr);
+
+        fclose(tablePtr);
+    }
+    //creating a file pointer for the table and the file that contains the
+    //word we need to search
+    FILE *tablePtr, *searchWord;
+    tablePtr = fopen("table.txt","r");
+    searchWord = fopen("password.txt", "r");
+
+    searchTable(tablePtr, searchWord);
+
+    fclose(searchWord);
+    fclose(tablePtr);
+    return 0;
+}
+
+char * hash(char  * password) {
+
+    char * hashedPassword = malloc(13*sizeof(char));
+    hashedPassword[0] = '\0';
+    char b1[5];
+    b1[4] = '\0';
+    char b2[5];
+    b2[4] = '\0';
+    char b3[5];
+    b3[4] = '\0';
+    //split the password in three four character blocks
+    strncpy(b1, password, 4);
+    strncpy(b2, password + 4, 4);
+    strncpy(b3, password + 8, 4);
+
+
+    char  o1[5];
+    o1[4] = '\0';
+    char  o2[5];
+    o2[4] = '\0';
+    char  o3[5];
+    o3[4] = '\0';
+
+    //encrypt each block
+    E(b1, o1);
+    E(b2, o2);
+    E(b3, o3);
+
+    //concatinate each all the blocks together
+    strcat(hashedPassword, o1);
+    hashedPassword[4] = '\0';
+
+    strcat(hashedPassword, o2);
+    hashedPassword[8] = '\0';
+
+    strcat(hashedPassword, o3);
+    hashedPassword[12] = '\0';
+
+    return hashedPassword;
+
+}
+
+void E(char *in, char *out) {
+    out[0]=(in[0]&0x80)^(((in[0]>>1)&0x7F)^((in[0])&0x7F));
+    out[1]=((in[1]&0x80)^((in[0]<<7)&0x80))^(((in[1]>>1)&0x7F)^((in[1])&0x7F));
+    out[2]=((in[2]&0x80)^((in[1]<<7)&0x80))^(((in[2]>>1)&0x7F)^((in[2])&0x7F));
+    out[3]=((in[3]&0x80)^((in[2]<<7)&0x80))^(((in[3]>>1)&0x7F)^((in[3])&0x7F));
+}
+
+void createHashTable(FILE * fptr) {
+
+    char  * combination = malloc(13*sizeof(char));
+    memset(combination, '0', 12);
+    combination[12] = '\0';
+
+    int character = 65;
+
+    int i, j, k, m;
+    for(i = 0; i < ALPHABET_LENGTH; i++) {
+
+        combination[0] = (char)(character + i);
+
+        for(j = 0; j < ALPHABET_LENGTH; j++) {
+
+            combination[1] = (char)(character + j);
+
+            for(k = 0; k < ALPHABET_LENGTH; k++) {
+
+                combination[2] = (char)(character + k);
+
+                for(m = 0; m < ALPHABET_LENGTH; m++) {
+                    combination[3] = (char)(character + m);
+                    fprintf(fptr, "%s %s\n", hash(combination), combination);
+                }
+            }
+        }
+    }
+
+    free(combination);
+}
+
+void searchTable(FILE * tablePtr, FILE * inputPassFile) {
+    //read search password from its file
+    char * enteredHashPass = malloc(13*sizeof(char));
+    fscanf(inputPassFile, "%s", enteredHashPass);
+
+    char * hashedTablePass = malloc(13*sizeof(char));
+    char * unhashedTablePass = malloc(13*sizeof(char));
+
+    while(fscanf(tablePtr, "%s %s", hashedTablePass, unhashedTablePass) == 2) {
+        //compare the search password to the one in the table
+        if(strcmp(enteredHashPass, hashedTablePass) == 0) {
+            unhashedTablePass[4] = '\0';
+            printf("Result = %s", unhashedTablePass);
+            break;
+        }
+    }
+    free(enteredHashPass);
+    free(hashedTablePass);
+    free(unhashedTablePass);
+
+}
