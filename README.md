@@ -4,4 +4,4 @@ OLM Hash Password Scheme:
 
 OPassword Cracker:
   To execute this part of the lab only a text file name password.txt is needed and it will be provided. This file will contain a 12-character hash value,
-  if the user wishes to test another hash value please use one from the file combinations.txt.
+  if the user wishes to test another hash value please use one from the file combinations.txt. 
