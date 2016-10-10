@@ -27,7 +27,7 @@ int main() {
 
     char * username = malloc(33*sizeof(char));
 
-    printf("Please enter your username between 4 - 32 characters: ");
+    printf("Please enter your username between 4 - 32 characters: ");//prompting the user to enter his username
     scanf("%s", username);
 
 
@@ -44,7 +44,7 @@ int main() {
 
     bool inTable = false;
 
-    while(fscanf(fp, "%s %s", tableUsername, tablePassword) == 2) {
+    while(fscanf(fp, "%s %s", tableUsername, tablePassword) == 2) {//reading the tableusername and password from the table.txt file
 
         fputs(tableUsername, fp2);
         fputs(" ", fp2);
@@ -56,7 +56,7 @@ int main() {
             scanf("%s", enteredOldPassword);
             n++;
 
-            padString(enteredOldPassword);
+            padString(enteredOldPassword);//add characters to the entered password to make it exactly 12 characters
 
             while(!(passwordMatch(enteredOldPassword, tablePassword))) {
 
@@ -74,8 +74,8 @@ int main() {
                 padString(enteredOldPassword);
                 n++;
             }
-            if(passwordMatch(enteredOldPassword, tablePassword)) {
-                printf("Welcome back %s. Please enter a new password:", username);
+            if(passwordMatch(enteredOldPassword, tablePassword)) {//if the passwords do match
+                printf("Welcome back %s. Please enter a new password:", username);//prompt the user to change his password
                 scanf("%s", enteredNewPassword);
 
                 while(!(isPasswordValid(enteredNewPassword))) { //while new password is not valid keep asking for a valid one
