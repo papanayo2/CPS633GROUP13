@@ -13,7 +13,10 @@ bool passwordMatch(char * passwordInput, char * hashedPassword);
 void padString(char * str);
 
 int main() {
-
+        /*
+    While table.txt is being read everything is being copied to table2.txt to make it
+    easier for us to change the password if we need to.
+    */
     FILE * fp, *fp2;
     //if file exists
     if(access("table.txt", F_OK) != -1 ) {
