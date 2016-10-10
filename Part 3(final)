@@ -12,10 +12,10 @@ void E(char *in, char *out);
 
 int main()
 {
-    //if file table.txt doesn't exist
-    if(access("table.txt", F_OK) == -1 ) {
+    //if file combinations.txt doesn't exist
+    if(access("combinations.txt", F_OK) == -1 ) {
         FILE *tablePtr;
-        tablePtr = fopen("table.txt", "w+");
+        tablePtr = fopen("combinations.txt", "w+");
 
         createHashTable(tablePtr);
 
@@ -24,7 +24,7 @@ int main()
     //creating a file pointer for the table and the file that contains the
     //word we need to search
     FILE *tablePtr, *searchWord;
-    tablePtr = fopen("table.txt","r");
+    tablePtr = fopen("combinations.txt","r");
     searchWord = fopen("password.txt", "r");
 
     searchTable(tablePtr, searchWord);
