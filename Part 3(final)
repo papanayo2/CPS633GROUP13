@@ -35,7 +35,10 @@ int main()
 }
 
 char * hash(char  * password) {
-
+    int i;
+    for(i=0; i < strlen(password); i++){
+        password[i] = toupper(password[i]);
+    }
     char * hashedPassword = malloc(13*sizeof(char));
     hashedPassword[0] = '\0';
     char b1[5];
